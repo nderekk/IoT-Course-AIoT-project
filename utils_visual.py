@@ -119,11 +119,13 @@ def plot_scatter_pca(
     else:
         print("The DataFrame has more than 4 columns.")
         
-def plot_bar(df: pd.DataFrame):
+        
+def plot_bar(df: pd.DataFrame, title: str):
     """Visualizes the bar plot of the DataFrame's values.
 
     Args:
         df: A DataFrame.
+        title: The title of the plot.
 
     Returns:
         void
@@ -133,8 +135,7 @@ def plot_bar(df: pd.DataFrame):
     barplot = sns.barplot(data=df, x=df.columns[0], y=df.columns[1], palette='viridis')
 
     # Add labels and title
-    plt.title('Total Collected Time-Length per Gesture Class',
-        fontsize=16)
+    plt.title(title, fontsize=16)
     plt.xlabel(df.columns[0], fontsize=12)
     plt.ylabel(df.columns[1], fontsize=12)
     plt.xticks(rotation=45)
@@ -149,4 +150,23 @@ def plot_bar(df: pd.DataFrame):
                         textcoords = 'offset points')
 
     plt.tight_layout()
+    plt.show()
+
+
+def plot_box(df: pd.DataFrame, title: str):
+    """Visualizes the boxplot of the DataFrame's values.
+
+    Args:
+        df: A DataFrame.
+        title: The title of the plot.
+
+    Returns:
+
+    """
+    plt.figure(figsize=(12, 6))
+    sns.set_theme(style="whitegrid")
+    sns.boxplot(data=df)
+    plt.title(title, fontsize=16)
+    plt.ylabel('Values', fontsize=12)
+    plt.xlabel('Axes', fontsize=12)
     plt.show()
