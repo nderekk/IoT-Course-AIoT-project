@@ -118,3 +118,35 @@ def plot_scatter_pca(
         ax.set_zlabel('Third Principal Component')
     else:
         print("The DataFrame has more than 4 columns.")
+        
+def plot_bar(df: pd.DataFrame):
+    """Visualizes the bar plot of the DataFrame's values.
+
+    Args:
+        df: A DataFrame.
+
+    Returns:
+        void
+    """
+    plt.figure(figsize=(12, 6))
+    sns.set_theme(style="whitegrid")
+    barplot = sns.barplot(data=df, x=df.columns[0], y=df.columns[1], palette='viridis')
+
+    # Add labels and title
+    plt.title('Total Collected Time-Length per Gesture Class',
+        fontsize=16)
+    plt.xlabel(df.columns[0], fontsize=12)
+    plt.ylabel(df.columns[1], fontsize=12)
+    plt.xticks(rotation=45)
+
+    # Optional: Add duration values on top of the bars
+    for p in barplot.patches:
+        barplot.annotate(format(p.get_height(), '.1f'),
+                        (p.get_x() + p.get_width() / 2.,
+                            p.get_height()),
+                        ha = 'center', va = 'center',
+                        xytext = (0, 9),
+                        textcoords = 'offset points')
+
+    plt.tight_layout()
+    plt.show()
