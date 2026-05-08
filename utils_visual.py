@@ -5,16 +5,19 @@ import seaborn as sns
 from mpl_toolkits.mplot3d import Axes3D  # noqa: F401 unused import
 
 
-def plot_instance_time_domain(df: pd.DataFrame):
+def plot_instance_time_domain(df: pd.DataFrame, title = "Time Domain Plot"):
     """Visualizes the movement instance to a plot in time domain.
 
     Args:
         df: The DataFrame to be visualized in time domain.
+        title: The title of the plot.
 
     Returns:
 
     """
     df.plot(figsize=(20, 10), linewidth=2, fontsize=20).legend(fontsize=18)
+    plt.title(title, fontsize=20)
+
     plt.xlabel('Sample', fontsize=20)
     plt.ylabel('Axes', fontsize=20)
 
