@@ -1,6 +1,7 @@
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
+from scipy import stats
 import seaborn as sns
 from mpl_toolkits.mplot3d import Axes3D  # noqa: F401 unused import
 
@@ -172,4 +173,32 @@ def plot_box(df: pd.DataFrame, title: str):
     plt.title(title, fontsize=16)
     plt.ylabel('Values', fontsize=12)
     plt.xlabel('Axes', fontsize=12)
+    plt.show()
+    
+    
+def plot_distribution_analysis(df: pd.DataFrame, column_name: str):
+    """
+        Visualizes the distribution of a specific column in the DataFrame using
+        a histogram with KDE and a Q-Q plot.
+        
+        Args:
+            df: A DataFrame.
+            column_name: The name of the column to analyze.
+
+        Returns:
+    """
+    fig, axes = plt.subplots(1, 2, figsize=(15, 5))
+    
+    # 1. Histogram + KDE
+    sns.histplot(df[column_name], kde=True, ax=axes[0], color='skyblue', edgecolor='black')
+    axes[0].set_title(f'Histogram & KDE of {column_name}')
+    axes[0].set_xlabel('Value')
+    axes[0].set_ylabel('Frequency')
+
+    # 2. Q-Q Plot
+    # stats.probplot calculates the quantiles and plots against a normal distribution
+    stats.probplot(df[column_name], dist="norm", plot=axes[1])
+    axes[1].set_title(f'Q-Q Plot of {column_name}')
+    
+    plt.tight_layout()
     plt.show()
