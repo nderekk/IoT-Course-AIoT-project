@@ -41,7 +41,7 @@ def sliding_window_pd(
     # to the size of the window.
     for window in df.rolling(window=ws, step=overlap, min_periods=ws,
                              win_type=w_type, center=w_center):
-        if window[window.columns[0]].count() >= ws:
+        if (window[window.columns[0]].count() >= ws) and (not window.isnull().values.any()):           
             if print_stats:
                 print("Print Window:", counter)
                 print("Number of samples:", window[window.columns[0]].count())
