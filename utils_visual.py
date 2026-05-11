@@ -6,7 +6,7 @@ import seaborn as sns
 from mpl_toolkits.mplot3d import Axes3D  # noqa: F401 unused import
 
 
-def plot_instance_time_domain(df: pd.DataFrame, title = "Time Domain Plot"):
+def plot_instance_time_domain(df: pd.DataFrame, title = "Time Domain Plot", axes = ['acc_x', 'acc_y', 'acc_z']):
     """Visualizes the movement instance to a plot in time domain.
 
     Args:
@@ -16,11 +16,12 @@ def plot_instance_time_domain(df: pd.DataFrame, title = "Time Domain Plot"):
     Returns:
 
     """
-    df.plot(figsize=(20, 10), linewidth=2, fontsize=20).legend(fontsize=18)
+    df[axes].plot(figsize=(20, 10), linewidth=2, fontsize=20).legend(fontsize=18)
     plt.title(title, fontsize=20)
 
     plt.xlabel('Sample', fontsize=20)
     plt.ylabel('Axes', fontsize=20)
+    plt.show()
 
 
 def plot_instance_3d(
