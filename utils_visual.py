@@ -26,7 +26,8 @@ def plot_instance_time_domain(df: pd.DataFrame, title = "Time Domain Plot", axes
 
 def plot_instance_3d(
         df: pd.DataFrame,
-        axes_list: tuple = ("acc_x", "acc_y", "acc_z")
+        axes: tuple = ("acc_x", "acc_y", "acc_z"),
+        title: str = "3d plot",
 ):
     """Plots a 3-axes DataFrame in 3D graph.
 
@@ -43,15 +44,15 @@ def plot_instance_3d(
 
     # print the plot in 3D
 
-    xs = df[axes_list[0]]
-    ys = df[axes_list[1]]
-    zs = df[axes_list[2]]
+    xs = df[axes[0]]
+    ys = df[axes[1]]
+    zs = df[axes[2]]
 
     ax.scatter(xs, ys, zs, color='green', s=50, alpha=0.6, edgecolors='w')
 
-    ax.set_xlabel(axes_list[0])
-    ax.set_ylabel(axes_list[1])
-    ax.set_zlabel(axes_list[2])
+    ax.set_xlabel(axes[0])
+    ax.set_ylabel(axes[1])
+    ax.set_zlabel(axes[2])
 
 
 def plot_np_instance(

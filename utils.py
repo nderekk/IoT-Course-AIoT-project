@@ -234,3 +234,13 @@ def list_files_in_folder(folder_path) -> list:
                 files_list.append(f)
 
     return files_list
+
+def subtract_mean(df, columns):
+    """
+    Subtracts the mean from specified columns in a
+    DataFrame.
+    """
+    df_centered = df.copy()
+    for col in columns:
+        df_centered[col] = df_centered[col] - df_centered[col].mean()
+    return df_centered
