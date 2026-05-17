@@ -45,7 +45,7 @@ def sliding_window_pd(
             if print_stats:
                 print("Print Window:", counter)
                 print("Number of samples:", window[window.columns[0]].count())
-            if window['user'].nunique() != 1:
+            if 'user' in window.columns and window['user'].nunique() != 1:
                 continue
             windows_list.append(window)
         counter += 1
