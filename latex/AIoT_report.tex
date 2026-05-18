@@ -1,0 +1,64 @@
+\documentclass[a4paper,12pt]{article}
+
+% Packages
+\usepackage{hyperref}
+\hypersetup{
+    colorlinks=true,
+    linkcolor=black,     % Internal links (like Table of Contents)
+    citecolor=blue,      % Citations
+    urlcolor=cyan        % External URLs
+}
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{geometry}
+\usepackage{fancyhdr}
+\usepackage{setspace}
+\usepackage{titlesec}  % For title formatting
+\geometry{margin=1in}
+\setstretch{1.5}
+\usepackage{listings}
+%font greek
+\usepackage[utf8]{inputenc}
+\usepackage[greek,english]{babel}
+\usepackage{alphabeta}
+% Header and Footer
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[R]{\thepage}
+\usepackage{minted}
+\usepackage[round]{natbib} % For (Devlin et al., 2019)
+
+%Coding
+\usepackage{xcolor,listings}
+\usepackage{textcomp}
+\lstset{upquote=true}
+\usepackage{courier} %% Sets font for listing as Courier.
+\lstset{
+showstringspaces = false, %% prevent space marking in strings, string is defined as the text that is generally printed directly to the console
+numbers = left, %% display line numbers on the left
+commentstyle = \color{green}, %% set comment color
+keywordstyle = \color{blue}, %% set keyword color
+stringstyle = \color{black}, %% set string color
+rulecolor = \color{black}, %% set frame color to avoid being affected by text color
+basicstyle = \small \ttfamily , %% set listing font and size
+breaklines = true, %% enable line breaking
+numberstyle = \tiny,
+}
+
+% Title Formatting
+\titleformat{\section}{\normalfont\Large\bfseries}{\thesection}{1em}{}
+
+\setcounter{secnumdepth}{3}
+\setcounter{tocdepth}{3}
+
+\begin{document}
+\include{titlepage}
+\newpage
+
+\tableofcontents
+
+
+\clearpage
+\section{Jectarapro} 
+
+\end{document}
