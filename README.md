@@ -1,100 +1,146 @@
-# AIoT Project — Human Gesture Recognition
+# AIoT Project 2 — Human Gesture Recognition
 
-**University of Patras** | AIoT Course
+**University of Patras** | AIoT Course | May 2026
+
 *Derekenaris Nikolaos · Mitrogiannis Evangelos · Stauridis Goulielmos Nikolaos*
 
 ---
 
 ## 📖 Overview
 
-This repository contains an end-to-end Artificial Intelligence of Things (AIoT) pipeline for recognizing smartphone gestures from raw 6-axis IMU (Inertial Measurement Unit) data. The data was collected using the **MetaMotionR** wrist-worn sensor kit. 
+An end-to-end Artificial Intelligence of Things (AIoT) pipeline for recognising five smartphone gestures from raw 6-axis IMU data, collected via the **MetaMotionR** wrist-worn sensor kit (Bosch BMI160, 100 Hz).
 
-The project evaluates two distinct classification paradigms:
-1. **Classical ML/Deep Learning on Raw Time-Series (`aiot_project_time_series.ipynb`)**: Using a RandomForest / 1D Convolutional Neural Network (CNN) to automatically learn spatial-temporal features from raw, windowed waveform data, compared against a flattened Random Forest baseline.
-2. **Statistical Machine Learning via Feature Engineering (`feature_eng.ipynb`)**: Extracting classical Time-Domain, Frequency-Domain, and Cross-Channel features, reducing dimensionality via statistical selection, and training traditional classifiers (Random Forest, SVM, Logistic Regression).
+Two classification paradigms are implemented and compared:
 
-## 🖐️ Gestures Evaluated
+1. **Time-Series Pipeline** (`aiot_project_time_series.ipynb`) — a 1D CNN and a flattened Random Forest trained directly on raw windowed waveforms, preserving or collapsing the temporal dimension respectively.
+2. **Feature Engineering Pipeline** (`feature_eng.ipynb`) — 76 time- and frequency-domain features extracted per window, reduced via correlation filtering and ANOVA selection, then fed to RF, SVM, and Logistic Regression classifiers.
 
-The dataset targets five natural smartphone navigation gestures:
-1. **Scroll Up**
-2. **Scroll Down**
-3. **Swipe Left**
-4. **Swipe Right**
-5. **Texting** (Single/Two-handed natural typing)
+All models are evaluated under three protocols of increasing strictness: **5-Fold CV → LOSO CV → True Unseen Test Set**, to cleanly separate within-cohort performance from real cross-subject generalisation.
 
-## ⚙️ Methodology & Pipelines
+---
 
-### 1. Data Preprocessing
-* **Outlier Cleaning**: Rolling Z-Score combined with linear interpolation to eliminate hardware spikes.
-* **Scaling**: Sensor-grouped scaling (StandardScaler for Accelerometer, RobustScaler for Gyroscope) fit strictly on the training set to prevent data leakage.
-* **Filtering & Segmentation**: Low-pass filtering (order=5, wn=0.4) and 300ms overlapping sliding windows (50ms overlap) to construct discrete samples.
+## 🖐️ Gesture Classes
 
-### 2. Time-Series Pipeline (Deep Learning)
-Evaluates a **1D CNN** vs. a **Random Forest** (trained on flattened windows).
-* The 1D CNN preserves the 3D structure of the data `(Samples × Window_Size × Channels)` to learn local motif filters.
-* Evaluated strictly using K-Fold, Leave-One-Subject-Out (LOSO) CV, and a completely unseen test dataset. 
+| Gesture | Description |
+|---|---|
+| Scroll Up | Finger drags downward on screen to move content up |
+| Scroll Down | Finger drags upward on screen to move content down |
+| Swipe Left | Horizontal glide from right to left |
+| Swipe Right | Horizontal glide from left to right |
+| Texting | Natural typing on the smartphone virtual keyboard |
 
-### 3. Feature Engineering Pipeline (Statistical Learning)
-* **Feature Extraction**: Extracts 76 features per window (Mean, STD, RMS, Skew, Kurtosis, ZCR, Spectral Energy, Dominant Freq, Entropy, Cross-channel Correlation, etc.).
-* **Redundancy Filter**: Drops highly correlated features (Spearman correlation > 0.90/0.95).
-* **Feature Selection**: Keeps the Top 15 most discriminative features using ANOVA F-statistic (`SelectKBest`).
-* **Classification**: Evaluates Random Forest, SVM (RBF Kernel), and Logistic Regression. Hyperparameter tuning is performed via `RandomizedSearchCV`.
+---
 
-## 📊 Key Results & Insights
+## ⚙️ Methodology
 
-Models were evaluated under three protocols of increasing strictness: **5-Fold CV** (within-cohort) → **LOSO CV** (cross-subject) → **True Unseen Test Set**.
+### Data Collection
+- **Device:** MetaMotionR (BMI160 IMU), 6-axis (accelerometer + gyroscope), 100 Hz
+- **Protocol:** 3 subjects × 5 gestures × 1-minute isolated recording clips
+- **Total:** 75 minutes of training data + a separate held-out test session collected on a later date
+- **Conditions:** Indoor, with natural variation in posture and phone-holding angle across subjects
 
-* **Random Forest (Feature Engineered)** achieved the highest within-cohort performance (~87% K-Fold F1) but suffered significantly on cross-subject generalization (~41% LOSO F1).
-* **1D CNN (Raw Time-Series)** demonstrated the strongest generalization capabilities on the completely unseen test dataset (~52% Accuracy/F1), outperforming all baseline models that relied on manual feature extraction or flattened vectors.
-* **Gesture Robustness**: "Texting" was overwhelmingly the most robust and transferable gesture across subjects (F1 ~0.74+ in unseen tests). In contrast, directional swipes (e.g., Swipe Left) were highly subject-dependent and collapsed during cross-subject evaluations due to variations in wrist-angle and holding posture.
+### Preprocessing
+- **Outlier cleaning:** Rolling Z-score (window=50, σ=3.0) with linear interpolation for hardware spike removal
+- **Scaling:** StandardScaler for accelerometer axes, RobustScaler for gyroscope axes — both fit on training data only
+- **Segmentation:** Sliding window of 200 samples (2 s) with 50-sample hop
+- **Filtering:** 5th-order zero-phase Butterworth low-pass filter (Wn=0.4, 20 Hz cutoff)
+
+### Time-Series Pipeline
+- **RF (flattened):** Raw windows flattened to 1200-dimensional vectors (200 samples × 6 axes) and fed to a Random Forest
+- **1D CNN:** Two Conv1D blocks with BatchNorm, ReLU, MaxPool, and Dropout, followed by a fully connected head; operates on 3D input `(Batch × Channels × Length)` in PyTorch
+
+### Feature Engineering Pipeline
+- **Extraction:** 76 features per window — mean, std, RMS, min, max, skewness, kurtosis, zero-crossing rate, spectral energy per axis and sensor, plus SMA and Vector Magnitude
+- **Redundancy filter:** Spearman correlation — features with r > 0.90 dropped
+- **Selection:** Top 15 features retained via ANOVA F-statistic (`SelectKBest`)
+- **Tuning:** `RandomizedSearchCV` (50 iterations, 5-fold CV) following Bergstra & Bengio (2012)
+
+---
+
+## 📊 Results
+
+### Time-Series Pipeline
+
+| Model | K-Fold Acc | K-Fold F1 | LOSO Acc | LOSO F1 | Unseen Acc | Unseen F1 |
+|---|---|---|---|---|---|---|
+| RF (Flattened) | 77% | 0.77 | 28% | 0.29 | 23% | 0.14 |
+| 1D CNN | 91% | 0.91 | 43% | 0.44 | 52% | 0.48 |
+
+### Feature Engineering Pipeline
+
+| Model | K-Fold Acc | K-Fold F1 | LOSO Acc | LOSO F1 | Unseen Acc | Unseen F1 |
+|---|---|---|---|---|---|---|
+| Random Forest | 86% | 0.86 | 41% | 0.41 | 40% | 0.40 |
+| SVM (RBF) | 64% | 0.64 | 31% | 0.32 | — | — |
+| Logistic Regression | 70% | 0.71 | 39% | 0.41 | — | — |
+
+### Key Takeaways
+- **1D CNN** achieves the best unseen-test performance (52%), demonstrating that learned temporal filters transfer partially across subjects
+- **Feature Engineering RF** generalises better than the flattened RF (40% vs 23%), confirming compact statistical features are less susceptible to subject-specific signal morphology than raw concatenated windows
+- **Texting** is the most robust class across all models and protocols (F1 up to 1.00 in K-Fold), owing to its distinctive high-frequency micro-movement fingerprint
+- **Swipe Left** is the most subject-dependent class, collapsing to F1 ≈ 0.00–0.09 in LOSO and unseen tests across all models
+- The ~45-point drop from K-Fold to LOSO/unseen is consistent across all models, pointing to **subject-dependent overfitting** as the primary limiting factor — a predictable consequence of a 2-subject training cohort under uncontrolled recording conditions
+
+---
+
+## 📁 Project Structure
+
+```
+├── aiot_project_time_series.ipynb  # Time-series pipeline (RF + 1D CNN)
+├── feature_eng.ipynb               # Feature engineering pipeline (RF, SVM, LR)
+├── eda.ipynb                       # Exploratory data analysis
+├── utils.py                        # Core signal processing utilities
+├── utils_visual.py                 # Plotting and visualisation utilities
+├── config.yml.template             # MongoDB connection template
+├── requirements.txt                # Python dependencies
+└── data/
+    └── aiot.gestures.json          # MongoDB collection export (mongoimport-ready)
+```
 
 ---
 
 ## 🚀 Getting Started
 
 ### Prerequisites
-* Python 3.11+
-* MongoDB Community Server (running locally or remotely)
-* Jupyter Notebook / JupyterLab
+- Python 3.11+
+- MongoDB Community Server (local or remote)
+- Jupyter Notebook / JupyterLab
 
-### 1. Installation
-Clone the repository and install the dependencies:
+### 1. Clone & Install
 ```bash
-git clone https://github.com/your-username/IoT-Course-AIoT-project.git
+git clone https://github.com/nderekk/IoT-Course-AIoT-project.git
 cd IoT-Course-AIoT-project
 python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
+source venv/bin/activate       # Windows: venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
-### 2. Database Setup & Loading the Exported Data
-The raw gesture data is stored in a MongoDB database. We have provided an export of our dataset inside the `.zip` archive as `/data/aito.gestures.json`.
+### 2. Load the Dataset
+Ensure MongoDB is running, then import the provided collection export:
+```bash
+mongoimport --uri="mongodb://localhost:27017" \
+            --db=aiot_project \
+            --collection=gestures \
+            --file=data/aiot.gestures.json \
+            --jsonArray
+```
 
-To replicate our environment, load this data into your own MongoDB instance using `mongoimport`:
+### 3. Configure
+```bash
+cp config.yml.template config.yml
+```
+Open `config.yml` and set `db` and `col` to match the names used above (`aiot_project` and `gestures`).
 
-1. Ensure your MongoDB server is running (e.g., `mongod`).
-2. Run the following command from the root of the project to import the data into a database named `aiot_project` and a collection named `gestures`:
-   ```bash
-   mongoimport --uri="mongodb://localhost:27017" --db=aiot_project --collection=gestures --file=data/aito.gestures.json --jsonArray
-   ```
-   *(Note: Adjust the `--uri`, `--db`, and `--collection` parameters if you prefer different names or are using a cloud MongoDB instance).*
-
-### 3. Configuration
-1. Copy the template configuration file:
-   ```bash
-   cp config.yml.template config.yml
-   ```
-2. Open `config.yml` and ensure the MongoDB parameters match the database and collection names you used in the import step (e.g., `db: "aiot_project"`, `col: "gestures"`).
-
-### 4. Running the Pipelines
-Start your Jupyter environment:
+### 4. Run
 ```bash
 jupyter notebook
 ```
-* Open **`aiot_project_time_series.ipynb`** to run the Deep Learning and Flattened Random Forest pipelines.
-* Open **`feature_eng.ipynb`** to run the Statistical Machine Learning pipelines on extracted features. 
+- `aiot_project_time_series.ipynb` — time-series pipeline
+- `feature_eng.ipynb` — feature engineering pipeline
+- `eda.ipynb` — exploratory analysis
 
-*Note: Execution of the notebooks will dynamically pull the data from your local MongoDB, process the windows, and output the Confusion Matrices and Classification Reports.*
+---
 
 ## 📞 Contact
-For any questions regarding this project, please refer to the team members listed at the top of this document.
+
+For questions, contact any of the team members listed above.
